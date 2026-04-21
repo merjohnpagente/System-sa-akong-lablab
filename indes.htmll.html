@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maloro Elementary School — Health Monitoring System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --green-900: #1b5e20;
+  --green-800: #2e7d32;
+  --green-700: #388e3c;
+  --green-600: #43a047;
+  --green-100: #e8f5e9;
+  --green-50:  #f1f8e9;
+  --accent:    #00c853;
+  --orange:    #e65100;
+  --yellow:    #f57f17;
+  --red:       #c62828;
+  --gray-900:  #1a1a2e;
+  --gray-700:  #374151;
+  --gray-500:  #6b7280;
+  --gray-300:  #d1d5db;
+  --gray-100:  #f3f4f6;
+  --gray-50:   #f9fafb;
+  --white:     #ffffff;
+  --sidebar-w: 248px;
+  --radius:    12px;
+  --shadow:    0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--gray-50); color: var(--gray-900); font-size: 14px; }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+a { text-decoration: none; }
+
+/* ===== TOAST ===== */
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast { padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #fff; min-width: 200px; max-width: 320px; box-shadow: var(--shadow-lg); animation: slideIn .3s ease; display: flex; align-items: center; gap: 8px; }
+.toast.success { background: var(--green-800); }
+.toast.error   { background: var(--red); }
+.toast.info    { background: var(--gray-700); }
+@keyframes slideIn { from { transform: translateX(120%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+@keyframes fadeOut { to { opacity:0; transform: translateX(120%); } }
+
+/* ===== LOGIN PAGE ===== */
+#login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, var(--green-900) 0%, var(--green-700) 60%, #a5d6a7 100%); }
+.login-card { background: var(--white); border-radius: 20px; padding: 48px 44px; width: 420px; box-shadow: var(--shadow-lg); }
+.login-logo { width: 72px; height: 72px; background: var(--green-100); border: 3px solid var(--green-700); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.login-logo span { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--green-800); font-weight: 700; }
+.login-card h1 { text-align: center; font-size: 15px; font-weight: 700; color: var(--green-900); line-height: 1.4; margin-bottom: 4px; }
+.login-card p { text-align: center; font-size: 12px; color: var(--gray-500); margin-bottom: 32px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+.form-group input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--gray-300); border-radius: 8px; font-size: 14px; transition: border-color .2s; outline: none; }
+.form-group input:focus { border-color: var(--green-600); box-shadow: 0 0 0 3px rgba(67,160,71,.1); }
+.form-group input.invalid { border-color: var(--red); }
+.btn-login { width: 100%; padding: 13px; background: var(--green-800); color: var(--white); border: none; border-radius: 8px; font-size: 15px; font-weight: 600; margin-top: 8px; transition: background .2s, transform .1s; }
+.btn-login:hover { background: var(--green-900); }
+.btn-login:active { transform: scale(.98); }
+.login-error { background: #ffebee; border: 1px solid #ef9a9a; color: var(--red); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+.login-error.show { display: block; }
+.login-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0 14px; }
+.login-divider::before, .login-divider::after { content:''; flex:1; height:1px; background: var(--gray-300); }
+.login-divider span { font-size: 11px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+.btn-register { width: 100%; padding: 12px; background: transparent; color: var(--green-800); border: 2px solid var(--green-700); border-radius: 8px; font-size: 14px; font-weight: 600; transition: all .2s; }
+.btn-register:hover { background: var(--green-100); }
+.demo-section { margin-top: 18px; }
+.demo-label { font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .6px; text-align: center; margin-bottom: 10px; }
+.demo-accounts { display: flex; flex-direction: column; gap: 7px; }
+.demo-btn { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border: 1.5px solid var(--gray-300); border-radius: 8px; background: var(--gray-50); cursor: pointer; text-align: left; transition: all .15s; width: 100%; }
+.demo-btn:hover { border-color: var(--green-600); background: var(--green-50); }
+.demo-btn-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.demo-btn.admin .demo-btn-icon  { background: #e8f5e9; }
+.demo-btn.teacher .demo-btn-icon { background: #e3f2fd; }
+.demo-btn.clinic .demo-btn-icon  { background: #fce4ec; }
+.demo-btn-info { flex:1; }
+.demo-btn-name  { font-size: 13px; font-weight: 600; color: var(--gray-800); }
+.demo-btn-creds { font-size: 11px; color: var(--gray-500); }
+.demo-btn-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.demo-btn.admin .demo-btn-tag   { background: #e8f5e9; color: var(--green-800); }
+.demo-btn.teacher .demo-btn-tag { background: #e3f2fd; color: #1565c0; }
+.demo-btn.clinic .demo-btn-tag  { background: #fce4ec; color: #880e4f; }
+
+/* ===== REGISTER PAGE ===== */
+#register-page { display: none; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, var(--green-900) 0%, var(--green-700) 60%, #a5d6a7 100%); }
+#register-page.active { display: flex; }
+.register-card { background: var(--white); border-radius: 20px; padding: 40px 44px; width: 460px; max-width: calc(100vw - 32px); box-shadow: var(--shadow-lg); }
+.register-card h1 { text-align: center; font-size: 15px; font-weight: 700; color: var(--green-900); line-height: 1.4; margin-bottom: 4px; }
+.register-card > p { text-align: center; font-size: 12px; color: var(--gray-500); margin-bottom: 24px; }
+.register-success { background: #e8f5e9; border: 1px solid #a5d6a7; color: var(--green-800); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+.register-success.show { display: block; }
+.register-error { background: #ffebee; border: 1px solid #ef9a9a; color: var(--red); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+.register-error.show { display: block; }
+.btn-back { background: transparent; border: none; color: var(--green-800); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; margin-bottom: 16px; padding: 0; }
+.btn-back:hover { color: var(--green-900); }
+.pw-strength { display: flex; gap: 4px; margin-top: 6px; }
+.pw-bar { flex:1; height:4px; border-radius: 2px; background: var(--gray-200); transition: background .3s; }
+.pw-bar.weak   { background: var(--red); }
+.pw-bar.fair   { background: var(--yellow); }
+.pw-bar.strong { background: var(--green-600); }
+
+/* ===== MAIN APP LAYOUT ===== */
+#app { display: none; height: 100vh; overflow: hidden; }
+#app.active { display: flex; }
+
+/* ===== SIDEBAR ===== */
+.sidebar { width: var(--sidebar-w); background: var(--green-900); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+.sidebar-header { padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.sidebar-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.sidebar-logo-icon { width: 36px; height: 36px; background: var(--green-600); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sidebar-logo-icon span { font-family: 'DM Serif Display', serif; font-size: 14px; color: #fff; }
+.sidebar-school { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.9); line-height: 1.3; }
+.sidebar-sub { font-size: 10px; color: rgba(255,255,255,.5); margin-top: 2px; }
+.sidebar-user { padding: 12px 20px 8px; }
+.sidebar-user-role { font-size: 10px; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .8px; }
+.sidebar-user-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.9); }
+.sidebar-nav { flex: 1; padding: 8px 12px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,.65); font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s; margin-bottom: 2px; }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.9); }
+.nav-item.active { background: var(--green-700); color: #fff; }
+.nav-item.logout { margin-top: auto; color: rgba(255,100,100,.8); }
+.nav-item.logout:hover { background: rgba(255,80,80,.1); color: #ff6b6b; }
+.sidebar-footer { padding: 12px 20px; border-top: 1px solid rgba(255,255,255,.1); }
+
+/* ===== MAIN CONTENT ===== */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { background: var(--white); border-bottom: 1px solid var(--gray-100); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.topbar-title { font-size: 17px; font-weight: 700; color: var(--gray-900); }
+.topbar-date { font-size: 12px; color: var(--gray-500); }
+.content-area { flex: 1; overflow-y: auto; padding: 28px; }
+
+/* ===== PANELS ===== */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ===== STATS CARDS ===== */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.stat-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid transparent; }
+.stat-card.green  { border-left-color: var(--green-600); }
+.stat-card.red    { border-left-color: var(--red); }
+.stat-card.orange { border-left-color: var(--orange); }
+.stat-card.yellow { border-left-color: var(--yellow); }
+.stat-card.blue   { border-left-color: #1565c0; }
+.stat-label { font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.stat-value { font-size: 30px; font-weight: 700; color: var(--gray-900); line-height: 1; }
+.stat-hint  { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+/* ===== SECTION CARDS ===== */
+.section-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+.section-card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+.section-card-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+.section-card-body { padding: 20px; }
+
+/* ===== SEARCH / FILTER ROW ===== */
+.filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 200px; padding: 9px 14px; border: 1.5px solid var(--gray-300); border-radius: 8px; font-size: 13px; outline: none; }
+.search-input:focus { border-color: var(--green-600); }
+.filter-select { padding: 9px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px; font-size: 13px; background: var(--white); outline: none; }
+
+/* ===== BUTTONS ===== */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; transition: background .15s, transform .1s; }
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--green-800); color: #fff; }
+.btn-primary:hover { background: var(--green-900); }
+.btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+.btn-secondary:hover { background: var(--gray-300); }
+.btn-danger { background: #ffebee; color: var(--red); }
+.btn-danger:hover { background: #ffcdd2; }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+.btn-icon { width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; transition: background .15s; }
+.btn-icon.edit { background: #e3f2fd; color: #1565c0; }
+.btn-icon.edit:hover { background: #bbdefb; }
+.btn-icon.delete { background: #ffebee; color: var(--red); }
+.btn-icon.delete:hover { background: #ffcdd2; }
+.btn-icon.view { background: var(--green-100); color: var(--green-800); }
+.btn-icon.view:hover { background: #c8e6c9; }
+
+/* ===== TABLE ===== */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--gray-50); padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--gray-100); white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--gray-100); transition: background .1s; }
+tbody tr:hover { background: var(--green-50); }
+tbody tr:last-child { border-bottom: none; }
+tbody td { padding: 10px 12px; color: var(--gray-700); vertical-align: middle; }
+.td-actions { display: flex; gap: 4px; }
+
+/* ===== BADGES ===== */
+.badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+.badge-normal    { background: #e8f5e9; color: #2e7d32; }
+.badge-underweight { background: #fff3e0; color: #e65100; }
+.badge-overweight  { background: #fffde7; color: #f57f17; }
+.badge-obese       { background: #ffebee; color: #c62828; }
+.badge-fever       { background: #ffebee; color: #c62828; }
+.badge-pending     { background: #e3f2fd; color: #1565c0; }
+.badge-reviewed    { background: #e8f5e9; color: #2e7d32; }
+.badge-male        { background: #e3f2fd; color: #1565c0; }
+.badge-female      { background: #fce4ec; color: #880e4f; }
+
+/* ===== PAGINATION ===== */
+.pagination { display: flex; align-items: center; gap: 6px; margin-top: 16px; justify-content: flex-end; }
+.page-btn { width: 32px; height: 32px; border: 1.5px solid var(--gray-300); background: var(--white); border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--gray-700); cursor: pointer; transition: all .15s; }
+.page-btn:hover { border-color: var(--green-600); color: var(--green-800); }
+.page-btn.active { background: var(--green-800); border-color: var(--green-800); color: #fff; }
+.page-btn:disabled { opacity: .4; cursor: default; }
+
+/* ===== MODAL ===== */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--white); border-radius: 16px; width: 480px; max-width: calc(100vw - 32px); max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 16px; font-weight: 700; color: var(--gray-900); }
+.modal-close { width: 28px; height: 28px; border: none; background: var(--gray-100); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--gray-500); transition: background .15s; }
+.modal-close:hover { background: var(--gray-300); }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 12px 24px 20px; display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ===== FORM ===== */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-field { margin-bottom: 14px; }
+.form-field label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
+.form-field input, .form-field select, .form-field textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--gray-300); border-radius: 8px; font-size: 13px; outline: none; transition: border-color .2s; }
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--green-600); box-shadow: 0 0 0 3px rgba(67,160,71,.08); }
+.form-field input.invalid, .form-field select.invalid, .form-field textarea.invalid { border-color: var(--red); }
+.form-field textarea { resize: vertical; min-height: 80px; }
+.field-hint { font-size: 11px; color: var(--gray-500); margin-top: 3px; }
+
+/* ===== STATUS RESULT CARD ===== */
+.result-box { background: var(--green-50); border: 1px solid #c8e6c9; border-radius: 10px; padding: 16px; margin-top: 12px; display: none; }
+.result-box.show { display: block; }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.result-item { text-align: center; }
+.result-label { font-size: 10px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+.result-value { font-size: 18px; font-weight: 700; color: var(--green-900); }
+
+/* ===== HEALTH CHART (SVG) ===== */
+.chart-container { background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--radius); padding: 20px; margin-top: 16px; }
+.chart-title { font-size: 13px; font-weight: 700; color: var(--gray-700); margin-bottom: 12px; }
+svg.chart { width: 100%; overflow: visible; }
+
+/* ===== REPORT VIEW ===== */
+.report-header { text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--green-800); }
+.report-header h2 { font-size: 16px; font-weight: 700; color: var(--green-900); }
+.report-header p  { font-size: 12px; color: var(--gray-500); margin-top: 3px; }
+.report-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; font-size: 12px; }
+.report-meta span { color: var(--gray-500); }
+.report-meta strong { color: var(--gray-900); }
+
+/* ===== PROGRESS BARS ===== */
+.progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.progress-label { width: 120px; font-size: 12px; color: var(--gray-700); font-weight: 500; }
+.progress-bar-bg { flex: 1; height: 10px; background: var(--gray-100); border-radius: 20px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 20px; transition: width .5s ease; }
+.progress-count { font-size: 12px; font-weight: 700; color: var(--gray-700); width: 30px; text-align: right; }
+
+/* ===== PRINT ===== */
+@media print {
+  .sidebar, .topbar, .filter-row, .section-card-header .btn, .td-actions, .pagination, #toast-container { display: none !important; }
+  .main { overflow: visible !important; }
+  .content-area { padding: 0 !important; overflow: visible !important; }
+  body { background: white; }
+  .section-card { box-shadow: none; border: 1px solid #ccc; }
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state { text-align: center; padding: 48px 20px; color: var(--gray-500); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: .4; }
+.empty-state p { font-size: 13px; }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container"></div>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo"><span>MES</span></div>
+    <h1>Maloro Elementary School</h1>
+    <p>Health Monitoring System</p>
+    <div class="login-error" id="login-error">Please fill in all required fields.</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="inp-username" placeholder="Enter username" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="inp-password" placeholder="Enter password">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Log In</button>
+    <div class="login-divider"><span>or</span></div>
+    <button class="btn-register" onclick="showRegisterPage()">Create New Account</button>
+    <div class="demo-section">
+      <div class="demo-label">Quick Demo Access</div>
+      <div class="demo-accounts">
+        <button class="demo-btn admin" onclick="demoLogin('admin','admin123')">
+          <div class="demo-btn-icon">🛡️</div>
+          <div class="demo-btn-info">
+            <div class="demo-btn-name">Administrator</div>
+            <div class="demo-btn-creds">admin / admin123</div>
+          </div>
+          <span class="demo-btn-tag">Admin</span>
+        </button>
+        <button class="demo-btn teacher" onclick="demoLogin('teacher','teacher123')">
+          <div class="demo-btn-icon">📚</div>
+          <div class="demo-btn-info">
+            <div class="demo-btn-name">Ms. Carla Reyes</div>
+            <div class="demo-btn-creds">teacher / teacher123</div>
+          </div>
+          <span class="demo-btn-tag">Teacher</span>
+        </button>
+        <button class="demo-btn clinic" onclick="demoLogin('clinic','clinic123')">
+          <div class="demo-btn-icon">🏥</div>
+          <div class="demo-btn-info">
+            <div class="demo-btn-name">Nurse Ana Lopez</div>
+            <div class="demo-btn-creds">clinic / clinic123</div>
+          </div>
+          <span class="demo-btn-tag">Clinic</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REGISTER PAGE ===== -->
+<div id="register-page">
+  <div class="register-card">
+    <div class="login-logo"><span>MES</span></div>
+    <h1>Maloro Elementary School</h1>
+    <p>Create a new account to access the Health Monitoring System</p>
+    <button class="btn-back" onclick="showLoginPage()">← Back to Login</button>
+    <div class="register-error" id="reg-error"></div>
+    <div class="register-success" id="reg-success"></div>
+    <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Full Name *</label>
+        <input type="text" id="reg-name" placeholder="e.g. Juan dela Cruz" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Username *</label>
+        <input type="text" id="reg-username" placeholder="Choose a username" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Role *</label>
+        <select id="reg-role" style="width:100%;padding:12px 14px;border:1.5px solid var(--gray-300);border-radius:8px;font-size:14px;outline:none;font-family:inherit;">
+          <option value="">Select role...</option>
+          <option value="teacher">Teacher</option>
+          <option value="clinic">Clinic Personnel</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Password *</label>
+        <input type="password" id="reg-password" placeholder="Create a password" oninput="checkPwStrength(this.value)">
+        <div class="pw-strength" id="pw-strength">
+          <div class="pw-bar" id="pw-bar1"></div>
+          <div class="pw-bar" id="pw-bar2"></div>
+          <div class="pw-bar" id="pw-bar3"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password *</label>
+        <input type="password" id="reg-confirm" placeholder="Re-enter password">
+      </div>
+    </div>
+    <button class="btn-login" onclick="doRegister()" style="margin-top:4px;">Create Account</button>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon"><span>MES</span></div>
+        <div>
+          <div class="sidebar-school">Maloro Elem. School</div>
+          <div class="sidebar-sub">Health Monitoring</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-role" id="sb-role">—</div>
+      <div class="sidebar-user-name" id="sb-name">—</div>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-date" id="topbar-date"></div>
+    </div>
+    <div class="content-area" id="content-area">
+      <!-- Panels injected here by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<!-- Student Modal -->
+<div class="modal-overlay" id="modal-student">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-student-title">Add Student</span>
+      <button class="modal-close" onclick="closeModal('modal-student')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="s-edit-id">
+      <div class="form-row">
+        <div class="form-field" style="grid-column:1/-1">
+          <label>Full Name *</label>
+          <input type="text" id="s-name" placeholder="e.g. Maria Santos">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Age *</label>
+          <input type="number" id="s-age" min="5" max="18" placeholder="e.g. 10">
+        </div>
+        <div class="form-field">
+          <label>Sex *</label>
+          <select id="s-sex"><option value="">Select</option><option>Male</option><option>Female</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Grade *</label>
+          <select id="s-grade"><option value="">Select</option><option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option><option>Grade 5</option><option>Grade 6</option></select>
+        </div>
+        <div class="form-field">
+          <label>Section *</label>
+          <input type="text" id="s-section" placeholder="e.g. Section A">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-student')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Measurement Modal -->
+<div class="modal-overlay" id="modal-measure">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Record Measurements</span>
+      <button class="modal-close" onclick="closeModal('modal-measure')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="m-student-id">
+      <div class="form-field">
+        <label>Student *</label>
+        <select id="m-student-select" onchange="document.getElementById('m-student-id').value=this.value"><option value="">— Select Student —</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Height (cm) *</label>
+          <input type="number" id="m-height" placeholder="e.g. 130" min="50" max="220">
+        </div>
+        <div class="form-field">
+          <label>Weight (kg) *</label>
+          <input type="number" id="m-weight" placeholder="e.g. 35" min="5" max="200">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Temperature (°C) *</label>
+          <input type="number" id="m-temp" placeholder="e.g. 36.5" step="0.1" min="30" max="45">
+        </div>
+        <div class="form-field">
+          <label>Date *</label>
+          <input type="date" id="m-date">
+        </div>
+      </div>
+      <div class="result-box" id="measure-result">
+        <div class="result-grid">
+          <div class="result-item"><div class="result-label">BMI</div><div class="result-value" id="res-bmi">—</div></div>
+          <div class="result-item"><div class="result-label">Nutritional Status</div><div id="res-nutr">—</div></div>
+          <div class="result-item"><div class="result-label">Temperature</div><div class="result-value" id="res-temp-val">—</div></div>
+          <div class="result-item"><div class="result-label">Status</div><div id="res-temp-status">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-measure')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMeasurement()">Save & Calculate</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-user-title">Add User</span>
+      <button class="modal-close" onclick="closeModal('modal-user')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="u-edit-id">
+      <div class="form-field"><label>Full Name *</label><input type="text" id="u-name" placeholder="Full name"></div>
+      <div class="form-row">
+        <div class="form-field"><label>Username *</label><input type="text" id="u-username" placeholder="Username" autocomplete="off"></div>
+        <div class="form-field"><label>Password *</label><input type="password" id="u-password" placeholder="Password"></div>
+      </div>
+      <div class="form-field">
+        <label>Role *</label>
+        <select id="u-role"><option value="">Select role</option><option value="teacher">Teacher</option><option value="clinic">Clinic Personnel</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-user')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recommendation Modal -->
+<div class="modal-overlay" id="modal-rec">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add Medical Recommendation</span>
+      <button class="modal-close" onclick="closeModal('modal-rec')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rec-report-id">
+      <div class="form-field" id="rec-student-info" style="margin-bottom:12px;padding:10px;background:var(--green-50);border-radius:8px;font-size:13px;"></div>
+      <div class="form-field">
+        <label>Medical Recommendation *</label>
+        <textarea id="rec-text" rows="4" placeholder="Enter recommendation or medical advice..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-rec')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRecommendation()">Save Recommendation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report View Modal -->
+<div class="modal-overlay" id="modal-report-view" style="align-items:flex-start;padding:20px;overflow-y:auto;">
+  <div class="modal" style="width:720px;max-width:100%;">
+    <div class="modal-header">
+      <span class="modal-title">Health Report</span>
+      <button class="modal-close" onclick="closeModal('modal-report-view')">✕</button>
+    </div>
+    <div class="modal-body" id="report-view-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-report-view')">Close</button>
+      <button class="btn btn-secondary" onclick="exportReportCSV()">Export CSV</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Print</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// ===== DATA LAYER ================================================
+// ================================================================
+const DB = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  getOne: (k, id) => DB.get(k).find(x => x.id === id),
+};
+
+const KEY = { users:'hms_users', students:'hms_students', measurements:'hms_measurements', reports:'hms_reports' };
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ================================================================
+// ===== SEED DATA ================================================
+// ================================================================
+function seedData() {
+  if (DB.get(KEY.students).length) return;
+
+  const users = [
+    { id:'u1', name:'Administrator', username:'admin', password:'admin123', role:'admin' },
+    { id:'u2', name:'Ms. Carla Reyes', username:'teacher', password:'teacher123', role:'teacher' },
+    { id:'u3', name:'Nurse Ana Lopez', username:'clinic', password:'clinic123', role:'clinic' },
+  ];
+  DB.set(KEY.users, users);
+
+  const students = [
+    { id:'s1', name:'Maria Santos',     age:7,  grade:'Grade 1', section:'Section A', sex:'Female' },
+    { id:'s2', name:'Juan dela Cruz',   age:8,  grade:'Grade 2', section:'Section B', sex:'Male'   },
+    { id:'s3', name:'Ana Reyes',        age:9,  grade:'Grade 3', section:'Section A', sex:'Female' },
+    { id:'s4', name:'Pedro Gomez',      age:10, grade:'Grade 4', section:'Section C', sex:'Male'   },
+    { id:'s5', name:'Luisa Flores',     age:11, grade:'Grade 5', section:'Section B', sex:'Female' },
+    { id:'s6', name:'Carlos Bautista',  age:12, grade:'Grade 6', section:'Section A', sex:'Male'   },
+    { id:'s7', name:'Rosa Mendoza',     age:8,  grade:'Grade 2', section:'Section A', sex:'Female' },
+    { id:'s8', name:'Miguel Torres',    age:11, grade:'Grade 5', section:'Section C', sex:'Male'   },
+  ];
+  DB.set(KEY.students, students);
+
+  const today = new Date().toISOString().slice(0,10);
+  const prev  = d => { let x=new Date(); x.setDate(x.getDate()-d); return x.toISOString().slice(0,10); };
+
+  const rawM = [
+    { sid:'s1', h:115, w:18, t:36.4, date:today   },
+    { sid:'s2', h:120, w:35, t:38.1, date:today   },
+    { sid:'s3', h:128, w:24, t:36.7, date:prev(1) },
+    { sid:'s4', h:135, w:55, t:36.9, date:prev(1) },
+    { sid:'s5', h:140, w:28, t:36.5, date:prev(2) },
+    { sid:'s6', h:148, w:65, t:37.0, date:prev(2) },
+    { sid:'s7', h:121, w:21, t:36.3, date:prev(3) },
+    { sid:'s8', h:142, w:38, t:36.8, date:prev(3) },
+    { sid:'s1', h:115, w:18.5, t:36.6, date:prev(15)},
+    { sid:'s2', h:119, w:34, t:36.5, date:prev(15)},
+  ];
+  const measurements = rawM.map(m => {
+    const bmi = calcBMI(m.h, m.w);
+    return { id:uid(), studentId:m.sid, height:m.h, weight:m.w, temperature:m.t, date:m.date,
+      bmi, nutritionalStatus:nutritionLabel(bmi), tempStatus:m.t>=37.5?'Fever':'Normal' };
+  });
+  DB.set(KEY.measurements, measurements);
+
+  const reports = [
+    { id:'r1', studentId:'s2', generatedBy:'teacher', date:today, status:'Pending', recommendation:'' },
+    { id:'r2', studentId:'s4', generatedBy:'teacher', date:prev(1), status:'Reviewed', recommendation:'Advise parents to monitor caloric intake and consult a pediatric nutritionist.' },
+    { id:'r3', studentId:'s6', generatedBy:'teacher', date:prev(2), status:'Reviewed', recommendation:'Schedule follow-up weight check in 2 weeks.' },
+  ];
+  DB.set(KEY.reports, reports);
+}
+
+function calcBMI(h, w) { const hm = h/100; return +(w/(hm*hm)).toFixed(1); }
+function nutritionLabel(bmi) {
+  if (bmi < 18.5) return 'Underweight';
+  if (bmi < 25)   return 'Normal';
+  if (bmi < 30)   return 'Overweight';
+  return 'Obese';
+}
+function nutritionBadge(status) {
+  const map = { Normal:'badge-normal', Underweight:'badge-underweight', Overweight:'badge-overweight', Obese:'badge-obese' };
+  return `<span class="badge ${map[status]||'badge-normal'}">${status}</span>`;
+}
+function tempBadge(status) {
+  return status === 'Fever'
+    ? `<span class="badge badge-fever">🌡 Gihilantan / Fever</span>`
+    : `<span class="badge badge-normal">Normal</span>`;
+}
+
+// ================================================================
+// ===== REGISTER & DEMO ==========================================
+// ================================================================
+function showRegisterPage() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('register-page').classList.add('active');
+  ['reg-name','reg-username','reg-password','reg-confirm'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el){ el.value=''; el.classList.remove('invalid'); }
+  });
+  document.getElementById('reg-role').value='';
+  document.getElementById('reg-error').classList.remove('show');
+  document.getElementById('reg-success').classList.remove('show');
+  resetPwBars();
+}
+
+function showLoginPage() {
+  document.getElementById('register-page').classList.remove('active');
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+function demoLogin(username, password) {
+  document.getElementById('inp-username').value = username;
+  document.getElementById('inp-password').value = password;
+  doLogin();
+}
+
+function checkPwStrength(pw) {
+  const bars = [document.getElementById('pw-bar1'), document.getElementById('pw-bar2'), document.getElementById('pw-bar3')];
+  bars.forEach(b => { b.className='pw-bar'; });
+  if(!pw) return;
+  let score = 0;
+  if(pw.length >= 6) score++;
+  if(pw.length >= 10 || /[A-Z]/.test(pw)) score++;
+  if(/[0-9]/.test(pw) && /[^a-zA-Z0-9]/.test(pw)) score++;
+  const cls = score===1?'weak':score===2?'fair':'strong';
+  for(let i=0;i<score;i++) bars[i].classList.add(cls);
+}
+
+function resetPwBars() {
+  [1,2,3].forEach(i => document.getElementById('pw-bar'+i).className='pw-bar');
+}
+
+function doRegister() {
+  const name     = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-username').value.trim();
+  const role     = document.getElementById('reg-role').value;
+  const pw       = document.getElementById('reg-password').value;
+  const confirm  = document.getElementById('reg-confirm').value;
+  const errEl    = document.getElementById('reg-error');
+  const okEl     = document.getElementById('reg-success');
+
+  errEl.classList.remove('show');
+  okEl.classList.remove('show');
+
+  // Validation
+  const showErr = msg => { errEl.textContent=msg; errEl.classList.add('show'); };
+
+  if(!name || !username || !role || !pw || !confirm) return showErr('Please fill in all required fields.');
+  if(username.length < 4) return showErr('Username must be at least 4 characters.');
+  if(pw.length < 6) return showErr('Password must be at least 6 characters.');
+  if(pw !== confirm) return showErr('Passwords do not match.');
+  if(role === 'admin') return showErr('Admin accounts cannot be self-registered.');
+
+  const users = DB.get(KEY.users);
+  if(users.find(u => u.username === username)) return showErr('That username is already taken. Please choose another.');
+
+  const newUser = { id: uid(), name, username, password: pw, role };
+  users.push(newUser);
+  DB.set(KEY.users, users);
+
+  okEl.textContent = `Account created! You can now log in as "${username}".`;
+  okEl.classList.add('show');
+  errEl.classList.remove('show');
+
+  setTimeout(() => {
+    showLoginPage();
+    document.getElementById('inp-username').value = username;
+    document.getElementById('inp-password').value = '';
+    document.getElementById('inp-password').focus();
+  }, 2000);
+}
+
+// ================================================================
+// ===== AUTH =====================================================
+// ================================================================
+let currentUser = null;
+
+function doLogin() {
+  const un = document.getElementById('inp-username').value.trim();
+  const pw = document.getElementById('inp-password').value;
+  const err = document.getElementById('login-error');
+  const uEl = document.getElementById('inp-username');
+  const pEl = document.getElementById('inp-password');
+
+  err.classList.remove('show');
+  uEl.classList.remove('invalid'); pEl.classList.remove('invalid');
+
+  if (!un || !pw) {
+    err.textContent = 'Please fill in all required fields.';
+    err.classList.add('show');
+    if (!un) uEl.classList.add('invalid');
+    if (!pw) pEl.classList.add('invalid');
+    return;
+  }
+
+  const users = DB.get(KEY.users);
+  const user = users.find(u => u.username === un && u.password === pw);
+  if (!user) {
+    err.textContent = 'Invalid username or password.';
+    err.classList.add('show');
+    uEl.classList.add('invalid'); pEl.classList.add('invalid');
+    return;
+  }
+
+  currentUser = user;
+  sessionStorage.setItem('hms_session', JSON.stringify(user));
+  showApp();
+}
+
+function doLogout() {
+  currentUser = null;
+  sessionStorage.removeItem('hms_session');
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('register-page').classList.remove('active');
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('inp-username').value = '';
+  document.getElementById('inp-password').value = '';
+  document.getElementById('login-error').classList.remove('show');
+}
+
+function showApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+  document.getElementById('sb-role').textContent = roleLabel(currentUser.role);
+  document.getElementById('sb-name').textContent = currentUser.name;
+  document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-PH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  buildNav();
+  loadPanel(defaultPanel(currentUser.role));
+}
+
+function roleLabel(r) { return { admin:'Administrator', teacher:'Teacher', clinic:'Clinic Personnel' }[r] || r; }
+function defaultPanel(r) { return { admin:'admin-dashboard', teacher:'teacher-dashboard', clinic:'clinic-dashboard' }[r]; }
+
+// ================================================================
+// ===== NAVIGATION ===============================================
+// ================================================================
+const NAV_TEACHER = [
+  { id:'teacher-dashboard', label:'Dashboard',       icon:'grid'   },
+  { id:'teacher-students',  label:'Student Records', icon:'users'  },
+  { id:'teacher-measure',   label:'Record Measurements', icon:'activity' },
+  { id:'teacher-reports',   label:'Health Reports',  icon:'file-text' },
+  { id:'teacher-send',      label:'Send Report to Clinic', icon:'send' },
+];
+const NAV_CLINIC = [
+  { id:'clinic-dashboard',  label:'Dashboard',          icon:'grid'   },
+  { id:'clinic-records',    label:'View Health Records',icon:'search' },
+  { id:'clinic-review',     label:'Review Reports',     icon:'clipboard' },
+  { id:'clinic-rec',        label:'Add Recommendation', icon:'plus-circle' },
+  { id:'clinic-history',    label:'Track Health History', icon:'trending-up' },
+];
+const NAV_ADMIN = [
+  { id:'admin-dashboard',   label:'Dashboard',          icon:'grid'   },
+  { id:'admin-monitor',     label:'Monitor Records',    icon:'database' },
+  { id:'admin-summary',     label:'Reports Summary',    icon:'bar-chart-2' },
+  { id:'admin-users',       label:'Manage Users',       icon:'user-check' },
+];
+
+const ICONS = {
+  grid:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
+  users:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  activity:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+  'file-text':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
+  send:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
+  search:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+  clipboard:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>`,
+  'plus-circle':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`,
+  'trending-up':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
+  database:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`,
+  'bar-chart-2':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  'user-check':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>`,
+  logout:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+};
+
+function buildNav() {
+  const nav = document.getElementById('sidebar-nav');
+  const map = { admin: NAV_ADMIN, teacher: NAV_TEACHER, clinic: NAV_CLINIC };
+  const items = map[currentUser.role] || [];
+  nav.innerHTML = items.map(item => `
+    <div class="nav-item" data-panel="${item.id}" onclick="loadPanel('${item.id}')">
+      ${ICONS[item.icon] || ''}
+      <span>${item.label}</span>
+    </div>
+  `).join('') + `<div class="nav-item logout" style="margin-top:16px" onclick="doLogout()">${ICONS.logout}<span>Logout</span></div>`;
+}
+
+let currentPanel = '';
+function loadPanel(id) {
+  currentPanel = id;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.panel === id);
+  });
+  const titles = {
+    'teacher-dashboard':'Dashboard','teacher-students':'Student Records','teacher-measure':'Record Measurements',
+    'teacher-reports':'Health Reports','teacher-send':'Send Report to Clinic',
+    'clinic-dashboard':'Dashboard','clinic-records':'View Health Records','clinic-review':'Review Reports',
+    'clinic-rec':'Add Recommendation','clinic-history':'Track Health History',
+    'admin-dashboard':'Dashboard','admin-monitor':'Monitor System Records','admin-summary':'Reports Summary','admin-users':'Manage Users',
+  };
+  document.getElementById('topbar-title').textContent = titles[id] || id;
+  const ca = document.getElementById('content-area');
+  ca.innerHTML = buildPanel(id);
+  initPanel(id);
+}
+
+// ================================================================
+// ===== PANEL BUILDER ============================================
+// ================================================================
+function buildPanel(id) {
+  switch(id) {
+    case 'teacher-dashboard': return tplTeacherDash();
+    case 'teacher-students':  return tplStudents();
+    case 'teacher-measure':   return tplMeasure();
+    case 'teacher-reports':   return tplReports();
+    case 'teacher-send':      return tplSend();
+    case 'clinic-dashboard':  return tplClinicDash();
+    case 'clinic-records':    return tplClinicRecords();
+    case 'clinic-review':     return tplClinicReview();
+    case 'clinic-rec':        return tplClinicRec();
+    case 'clinic-history':    return tplClinicHistory();
+    case 'admin-dashboard':   return tplAdminDash();
+    case 'admin-monitor':     return tplAdminMonitor();
+    case 'admin-summary':     return tplAdminSummary();
+    case 'admin-users':       return tplAdminUsers();
+    default: return '<p>Panel not found.</p>';
+  }
+}
+
+// ================================================================
+// ===== TEACHER PANELS ==========================================
+// ================================================================
+function tplTeacherDash() {
+  const students    = DB.get(KEY.students);
+  const measures    = DB.get(KEY.measurements);
+  const today       = new Date().toISOString().slice(0,10);
+  const todayM      = measures.filter(m => m.date === today);
+  const feverToday  = todayM.filter(m => m.tempStatus === 'Fever').length;
+  const underweight = measures.reduce((acc, m) => { if (!acc.has(m.studentId) && m.nutritionalStatus==='Underweight') acc.add(m.studentId); return acc; }, new Set()).size;
+  const overweight  = measures.reduce((acc, m) => { if (!acc.has(m.studentId) && (m.nutritionalStatus==='Overweight'||m.nutritionalStatus==='Obese')) acc.add(m.studentId); return acc; }, new Set()).size;
+  return `
+  <div class="stats-grid">
+    <div class="stat-card green"><div class="stat-label">Total Students</div><div class="stat-value">${students.length}</div><div class="stat-hint">Enrolled</div></div>
+    <div class="stat-card red"><div class="stat-label">Fever Today</div><div class="stat-value">${feverToday}</div><div class="stat-hint">Cases today</div></div>
+    <div class="stat-card orange"><div class="stat-label">Underweight</div><div class="stat-value">${underweight}</div><div class="stat-hint">Students flagged</div></div>
+    <div class="stat-card yellow"><div class="stat-label">Overweight/Obese</div><div class="stat-value">${overweight}</div><div class="stat-hint">Students flagged</div></div>
+  </div>
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">Recent Measurements</span></div>
+    <div class="section-card-body">
+      ${renderMeasureTable(measures.slice(-8).reverse(), students)}
+    </div>
+  </div>`;
+}
+
+function tplStudents() {
+  return `
+  <div class="section-card">
+    <div class="section-card-header">
+      <span class="section-card-title">Student Records</span>
+      <button class="btn btn-primary btn-sm" onclick="openAddStudent()">+ Add Student</button>
+    </div>
+    <div class="section-card-body">
+      <div class="filter-row" style="margin-bottom:14px">
+        <input class="search-input" id="student-search" placeholder="Search by name or ID…" oninput="renderStudentTable()">
+        <select class="filter-select" id="student-grade-filter" onchange="renderStudentTable()">
+          <option value="">All Grades</option>
+          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+          <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+        </select>
+      </div>
+      <div id="student-table-wrap"></div>
+      <div id="student-pagination" class="pagination"></div>
+    </div>
+  </div>`;
+}
+
+let studentPage = 1;
+function renderStudentTable() {
+  const q   = (document.getElementById('student-search')?.value||'').toLowerCase();
+  const gr  = document.getElementById('student-grade-filter')?.value||'';
+  let data  = DB.get(KEY.students).filter(s =>
+    (!q || s.name.toLowerCase().includes(q) || s.id.includes(q)) &&
+    (!gr || s.grade === gr)
+  );
+  const pageSize = 10;
+  const total = Math.ceil(data.length / pageSize) || 1;
+  if (studentPage > total) studentPage = total;
+  const page = data.slice((studentPage-1)*pageSize, studentPage*pageSize);
+
+  const wrap = document.getElementById('student-table-wrap');
+  if (!page.length) { wrap.innerHTML = emptyState('No students found.'); renderPagination('student-pagination', studentPage, total, p=>{studentPage=p;renderStudentTable();}); return; }
+  wrap.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Full Name</th><th>Age</th><th>Sex</th><th>Grade</th><th>Section</th><th>Actions</th></tr></thead>
+    <tbody>${page.map(s=>`<tr>
+      <td style="font-size:11px;color:var(--gray-500)">${s.id}</td>
+      <td><strong>${s.name}</strong></td>
+      <td>${s.age}</td>
+      <td><span class="badge ${s.sex==='Male'?'badge-male':'badge-female'}">${s.sex}</span></td>
+      <td>${s.grade}</td>
+      <td>${s.section}</td>
+      <td><div class="td-actions">
+        <button class="btn-icon edit" title="Edit" onclick="openEditStudent('${s.id}')">✏️</button>
+        <button class="btn-icon delete" title="Delete" onclick="deleteStudent('${s.id}')">🗑️</button>
+      </div></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+  renderPagination('student-pagination', studentPage, total, p=>{studentPage=p;renderStudentTable();});
+}
+
+function tplMeasure() {
+  const measures = DB.get(KEY.measurements);
+  const students = DB.get(KEY.students);
+  return `
+  <div class="section-card">
+    <div class="section-card-header">
+      <span class="section-card-title">Record Measurements</span>
+      <button class="btn btn-primary btn-sm" onclick="openMeasureModal()">+ Record</button>
+    </div>
+    <div class="section-card-body">
+      <div class="filter-row" style="margin-bottom:14px">
+        <input class="search-input" id="measure-search" placeholder="Search by student name…" oninput="renderMeasureList()">
+        <input type="date" class="filter-select" id="measure-date-filter" onchange="renderMeasureList()">
+      </div>
+      <div id="measure-table-wrap"></div>
+      <div id="measure-pagination" class="pagination"></div>
+    </div>
+  </div>`;
+}
+
+let measurePage = 1;
+function renderMeasureList() {
+  const q    = (document.getElementById('measure-search')?.value||'').toLowerCase();
+  const df   = document.getElementById('measure-date-filter')?.value||'';
+  const students = DB.get(KEY.students);
+  const sMap = Object.fromEntries(students.map(s=>[s.id,s]));
+  let data = DB.get(KEY.measurements).filter(m => {
+    const s = sMap[m.studentId];
+    return (!q || (s&&s.name.toLowerCase().includes(q))) && (!df || m.date===df);
+  }).reverse();
+
+  const pageSize=10, total=Math.ceil(data.length/pageSize)||1;
+  if(measurePage>total) measurePage=total;
+  const page=data.slice((measurePage-1)*pageSize, measurePage*pageSize);
+  const wrap=document.getElementById('measure-table-wrap');
+  if(!page.length){wrap.innerHTML=emptyState('No measurements found.');renderPagination('measure-pagination',measurePage,total,p=>{measurePage=p;renderMeasureList();});return;}
+  wrap.innerHTML=`<div class="table-wrap">${renderMeasureTable(page,students)}</div>`;
+  renderPagination('measure-pagination',measurePage,total,p=>{measurePage=p;renderMeasureList();});
+}
+
+function renderMeasureTable(measures, students) {
+  if(!measures.length) return emptyState('No measurements yet.');
+  const sMap = Object.fromEntries(students.map(s=>[s.id,s]));
+  return `<table>
+    <thead><tr><th>Student</th><th>Date</th><th>Height</th><th>Weight</th><th>BMI</th><th>Nutritional Status</th><th>Temp (°C)</th><th>Temp Status</th></tr></thead>
+    <tbody>${measures.map(m=>{const s=sMap[m.studentId];return`<tr>
+      <td><strong>${s?s.name:'Unknown'}</strong>${s?`<br><small style="color:var(--gray-500)">${s.grade}</small>`:''}</td>
+      <td>${m.date}</td><td>${m.height} cm</td><td>${m.weight} kg</td>
+      <td><strong>${m.bmi}</strong></td>
+      <td>${nutritionBadge(m.nutritionalStatus)}</td>
+      <td>${m.temperature}</td>
+      <td>${tempBadge(m.tempStatus)}</td>
+    </tr>`}).join('')}</tbody>
+  </table>`;
+}
+
+function tplReports() {
+  return `
+  <div class="section-card">
+    <div class="section-card-header">
+      <span class="section-card-title">Health Reports</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="exportAllCSV()">Export CSV</button>
+        <button class="btn btn-primary btn-sm" onclick="openReportView()">Generate Report</button>
+      </div>
+    </div>
+    <div class="section-card-body">
+      <div class="filter-row" style="margin-bottom:14px">
+        <input class="search-input" id="report-search" placeholder="Search student…" oninput="renderReportTable()">
+        <select class="filter-select" id="report-grade" onchange="renderReportTable()">
+          <option value="">All Grades</option>
+          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+          <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+        </select>
+        <input type="date" class="filter-select" id="report-from" onchange="renderReportTable()" placeholder="From">
+        <input type="date" class="filter-select" id="report-to"   onchange="renderReportTable()" placeholder="To">
+      </div>
+      <div id="report-table-wrap"></div>
+      <div id="report-pagination" class="pagination"></div>
+    </div>
+  </div>`;
+}
+
+let reportPage=1;
+function renderReportTable() {
+  const q    = (document.getElementById('report-search')?.value||'').toLowerCase();
+  const gr   = document.getElementById('report-grade')?.value||'';
+  const from = document.getElementById('report-from')?.value||'';
+  const to   = document.getElementById('report-to')?.value||'';
+  const students=DB.get(KEY.students);
+  const sMap=Object.fromEntries(students.map(s=>[s.id,s]));
+  let data=DB.get(KEY.measurements).filter(m=>{
+    const s=sMap[m.studentId];
+    return (!q||(s&&s.name.toLowerCase().includes(q)))&&(!gr||s?.grade===gr)&&(!from||m.date>=from)&&(!to||m.date<=to);
+  }).reverse();
+
+  // get recommendations
+  const reports=DB.get(KEY.reports);
+  const pageSize=10,total=Math.ceil(data.length/pageSize)||1;
+  if(reportPage>total) reportPage=total;
+  const page=data.slice((reportPage-1)*pageSize,reportPage*pageSize);
+  const wrap=document.getElementById('report-table-wrap');
+  if(!page.length){wrap.innerHTML=emptyState('No records match filters.');renderPagination('report-pagination',reportPage,total,p=>{reportPage=p;renderReportTable();});return;}
+  wrap.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>Student</th><th>Grade</th><th>Date</th><th>H (cm)</th><th>W (kg)</th><th>BMI</th><th>Nutritional Status</th><th>Temp</th><th>Temp Status</th><th>Recommendation</th></tr></thead>
+    <tbody>${page.map(m=>{
+      const s=sMap[m.studentId];
+      const rec=reports.filter(r=>r.studentId===m.studentId&&r.recommendation).slice(-1)[0]?.recommendation||'—';
+      return`<tr>
+        <td><strong>${s?s.name:'?'}</strong></td>
+        <td>${s?.grade||''}</td><td>${m.date}</td>
+        <td>${m.height}</td><td>${m.weight}</td><td>${m.bmi}</td>
+        <td>${nutritionBadge(m.nutritionalStatus)}</td>
+        <td>${m.temperature}°C</td><td>${tempBadge(m.tempStatus)}</td>
+        <td style="max-width:180px;font-size:11px">${rec}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+  renderPagination('report-pagination',reportPage,total,p=>{reportPage=p;renderReportTable();});
+}
+
+function tplSend() {
+  const students=DB.get(KEY.students);
+  const reports=DB.get(KEY.reports);
+  return `
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">Send Report to Clinic</span></div>
+    <div class="section-card-body">
+      <div class="form-field" style="max-width:400px">
+        <label>Select Student *</label>
+        <select id="send-student"><option value="">— Select —</option>${students.map(s=>`<option value="${s.id}">${s.name} (${s.grade})</option>`).join('')}</select>
+      </div>
+      <button class="btn btn-primary" style="margin-top:4px" onclick="sendReport()">Submit Report to Clinic</button>
+      <hr style="margin:24px 0;border:none;border-top:1px solid var(--gray-100)">
+      <div class="section-card-title" style="margin-bottom:12px">Submitted Reports</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Student</th><th>Date</th><th>Submitted By</th><th>Status</th></tr></thead>
+        <tbody>${reports.length?reports.map(r=>{const s=students.find(x=>x.id===r.studentId);return`<tr>
+          <td>${s?s.name:'?'}</td><td>${r.date}</td><td>${r.generatedBy}</td>
+          <td><span class="badge ${r.status==='Reviewed'?'badge-reviewed':'badge-pending'}">${r.status}</span></td>
+        </tr>`}).join(''):emptyState('No reports submitted yet.')}</tbody>
+      </table></div>
+    </div>
+  </div>`;
+}
+
+// ================================================================
+// ===== CLINIC PANELS ============================================
+// ================================================================
+function tplClinicDash() {
+  const reports=DB.get(KEY.reports);
+  const pending=reports.filter(r=>r.status==='Pending').length;
+  const withRec=reports.filter(r=>r.recommendation).length;
+  return `
+  <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="stat-card green"><div class="stat-label">Reports Received</div><div class="stat-value">${reports.length}</div></div>
+    <div class="stat-card orange"><div class="stat-label">Pending Review</div><div class="stat-value">${pending}</div></div>
+    <div class="stat-card blue"><div class="stat-label">Active Recommendations</div><div class="stat-value">${withRec}</div></div>
+  </div>
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">Reports Inbox</span></div>
+    <div class="section-card-body">${renderClinicReportList()}</div>
+  </div>`;
+}
+
+function renderClinicReportList() {
+  const reports=DB.get(KEY.reports);
+  const students=DB.get(KEY.students);
+  if(!reports.length) return emptyState('No reports yet.');
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>Student</th><th>Date</th><th>Status</th><th>Recommendation</th><th>Action</th></tr></thead>
+    <tbody>${reports.map(r=>{const s=students.find(x=>x.id===r.studentId);return`<tr>
+      <td><strong>${s?s.name:'?'}</strong></td><td>${r.date}</td>
+      <td><span class="badge ${r.status==='Reviewed'?'badge-reviewed':'badge-pending'}">${r.status}</span></td>
+      <td style="max-width:200px;font-size:11px">${r.recommendation||'—'}</td>
+      <td><button class="btn-icon view" onclick="openAddRec('${r.id}')">✏️</button></td>
+    </tr>`}).join('')}</tbody>
+  </table></div>`;
+}
+
+function tplClinicRecords() {
+  return `
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">Student Health Records</span></div>
+    <div class="section-card-body">
+      <div class="filter-row" style="margin-bottom:14px">
+        <input class="search-input" id="cr-search" placeholder="Search student…" oninput="renderClinicRecordsTable()">
+      </div>
+      <div id="cr-table-wrap"></div>
+      <div id="cr-pagination" class="pagination"></div>
+    </div>
+  </div>`;
+}
+
+let crPage=1;
+function renderClinicRecordsTable() {
+  const q=(document.getElementById('cr-search')?.value||'').toLowerCase();
+  const students=DB.get(KEY.students).filter(s=>!q||s.name.toLowerCase().includes(q));
+  const measurements=DB.get(KEY.measurements);
+  const pageSize=10,total=Math.ceil(students.length/pageSize)||1;
+  if(crPage>total) crPage=total;
+  const page=students.slice((crPage-1)*pageSize,crPage*pageSize);
+  const wrap=document.getElementById('cr-table-wrap');
+  if(!page.length){wrap.innerHTML=emptyState('No students found.');return;}
+  wrap.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>Student</th><th>Grade</th><th>Sex</th><th>Last Measurement</th><th>BMI</th><th>Nutritional Status</th><th>Last Temp</th><th>Temp Status</th></tr></thead>
+    <tbody>${page.map(s=>{
+      const ms=measurements.filter(m=>m.studentId===s.id).sort((a,b)=>b.date.localeCompare(a.date));
+      const latest=ms[0];
+      return`<tr>
+        <td><strong>${s.name}</strong></td><td>${s.grade}</td>
+        <td><span class="badge ${s.sex==='Male'?'badge-male':'badge-female'}">${s.sex}</span></td>
+        <td>${latest?latest.date:'No data'}</td>
+        <td>${latest?latest.bmi:'—'}</td>
+        <td>${latest?nutritionBadge(latest.nutritionalStatus):'—'}</td>
+        <td>${latest?latest.temperature+'°C':'—'}</td>
+        <td>${latest?tempBadge(latest.tempStatus):'—'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+  renderPagination('cr-pagination',crPage,total,p=>{crPage=p;renderClinicRecordsTable();});
+}
+
+function tplClinicReview() {
+  return `
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">Review Reports</span></div>
+    <div class="section-card-body">${renderClinicReportList()}</div>
+  </div>`;
+}
+
+function tplClinicRec() {
+  const reports=DB.get(KEY.reports);
+  const students=DB.get(KEY.students);
+  return `
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">Add Medical Recommendation</span></div>
+    <div class="section-card-body">
+      <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">Select a report below to add or update a medical recommendation.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Student</th><th>Date</th><th>Status</th><th>Current Recommendation</th><th>Action</th></tr></thead>
+        <tbody>${reports.length?reports.map(r=>{const s=students.find(x=>x.id===r.studentId);return`<tr>
+          <td><strong>${s?s.name:'?'}</strong></td><td>${r.date}</td>
+          <td><span class="badge ${r.status==='Reviewed'?'badge-reviewed':'badge-pending'}">${r.status}</span></td>
+          <td style="max-width:240px;font-size:12px">${r.recommendation||'<em style="color:var(--gray-400)">None yet</em>'}</td>
+          <td><button class="btn btn-primary btn-sm" onclick="openAddRec('${r.id}')">Add / Edit</button></td>
+        </tr>`}).join(''):emptyState('No reports to review.')}</tbody>
+      </table></div>
+    </div>
+  </div>`;
+}
+
+function tplClinicHistory() {
+  const students=DB.get(KEY.students);
+  return `
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">Track Health History</span></div>
+    <div class="section-card-body">
+      <div class="filter-row" style="margin-bottom:16px">
+        <select class="search-input" id="history-student" onchange="renderHistory()" style="max-width:300px">
+          <option value="">— Select Student —</option>
+          ${students.map(s=>`<option value="${s.id}">${s.name} (${s.grade})</option>`).join('')}
+        </select>
+      </div>
+      <div id="history-content"></div>
+    </div>
+  </div>`;
+}
+
+function renderHistory() {
+  const sid=document.getElementById('history-student')?.value;
+  const wrap=document.getElementById('history-content');
+  if(!sid){wrap.innerHTML='';return;}
+  const measures=DB.get(KEY.measurements).filter(m=>m.studentId===sid).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!measures.length){wrap.innerHTML=emptyState('No measurements recorded for this student.');return;}
+
+  const labels=measures.map(m=>m.date.slice(5)); // MM-DD
+  const weights=measures.map(m=>m.weight);
+  const temps=measures.map(m=>m.temperature);
+  const bmis=measures.map(m=>m.bmi);
+
+  wrap.innerHTML=`
+    <div class="chart-container"><div class="chart-title">Weight Over Time (kg)</div>${svgLineChart(labels,weights,'#2e7d32',20,60)}</div>
+    <div class="chart-container" style="margin-top:12px"><div class="chart-title">Temperature Over Time (°C)</div>${svgLineChart(labels,temps,'#c62828',35,41)}</div>
+    <div class="chart-container" style="margin-top:12px"><div class="chart-title">BMI Trend</div>${svgLineChart(labels,bmis,'#1565c0',10,35)}</div>
+    <div class="section-card-body" style="margin-top:12px;padding:0">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--gray-700)">Raw Data</div>
+      ${renderMeasureTable(measures.slice().reverse(),[...DB.get(KEY.students)])}
+    </div>`;
+}
+
+function svgLineChart(labels, values, color, yMin, yMax) {
+  const W=560,H=120,padL=40,padR=20,padT=10,padB=30;
+  const iW=W-padL-padR, iH=H-padT-padB;
+  const n=values.length;
+  if(n<2) return '<p style="font-size:12px;color:var(--gray-400)">Need at least 2 data points.</p>';
+  const xStep=iW/(n-1);
+  const yRange=yMax-yMin||1;
+  const pts=values.map((v,i)=>{
+    const x=padL+i*xStep;
+    const y=padT+iH-(v-yMin)/yRange*iH;
+    return [x,y];
+  });
+  const polyline=pts.map(p=>p.join(',')).join(' ');
+  const area=`${padL},${padT+iH} `+pts.map(p=>p.join(',')).join(' ')+` ${padL+iW},${padT+iH}`;
+  const xLabels=labels.map((l,i)=>`<text x="${padL+i*xStep}" y="${H-2}" text-anchor="middle" font-size="9" fill="#9ca3af">${l}</text>`).join('');
+  // y-axis ticks
+  const yTicks=[yMin,Math.round((yMin+yMax)/2),yMax].map(v=>{
+    const y=padT+iH-(v-yMin)/yRange*iH;
+    return `<text x="${padL-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#9ca3af">${v}</text><line x1="${padL}" y1="${y}" x2="${padL+iW}" y2="${y}" stroke="#f3f4f6" stroke-width="1"/>`;
+  }).join('');
+  const dots=pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${color}" stroke="white" stroke-width="1.5"><title>${labels[i]}: ${values[i]}</title></circle>`).join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${yTicks}
+    <polygon points="${area}" fill="${color}" fill-opacity=".08"/>
+    <polyline points="${polyline}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+    ${dots}
+    ${xLabels}
+  </svg>`;
+}
+
+// ================================================================
+// ===== ADMIN PANELS ============================================
+// ================================================================
+function tplAdminDash() {
+  const students=DB.get(KEY.students);
+  const users=DB.get(KEY.users);
+  const measures=DB.get(KEY.measurements);
+  const reports=DB.get(KEY.reports);
+  return `
+  <div class="stats-grid">
+    <div class="stat-card green"><div class="stat-label">Total Students</div><div class="stat-value">${students.length}</div></div>
+    <div class="stat-card blue"><div class="stat-label">System Users</div><div class="stat-value">${users.length}</div></div>
+    <div class="stat-card orange"><div class="stat-label">Health Records</div><div class="stat-value">${measures.length}</div></div>
+    <div class="stat-card yellow"><div class="stat-label">Reports Generated</div><div class="stat-value">${reports.length}</div></div>
+  </div>
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">System Overview</span></div>
+    <div class="section-card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Nutritional Status Distribution</div>
+          ${adminNutritionBars()}
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Users by Role</div>
+          ${adminUserBars()}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function adminNutritionBars() {
+  const students=DB.get(KEY.students);
+  const measures=DB.get(KEY.measurements);
+  const latestPerStudent={};
+  measures.forEach(m=>{ if(!latestPerStudent[m.studentId]||m.date>latestPerStudent[m.studentId].date) latestPerStudent[m.studentId]=m; });
+  const counts={Normal:0,Underweight:0,Overweight:0,Obese:0};
+  Object.values(latestPerStudent).forEach(m=>{ if(counts[m.nutritionalStatus]!==undefined) counts[m.nutritionalStatus]++; });
+  const total=students.length||1;
+  const colors={Normal:'#2e7d32',Underweight:'#e65100',Overweight:'#f57f17',Obese:'#c62828'};
+  return Object.entries(counts).map(([k,v])=>`
+    <div class="progress-row">
+      <div class="progress-label">${k}</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.round(v/total*100)}%;background:${colors[k]}"></div></div>
+      <div class="progress-count">${v}</div>
+    </div>`).join('');
+}
+
+function adminUserBars() {
+  const users=DB.get(KEY.users);
+  const roles=['admin','teacher','clinic'];
+  const labels={admin:'Admin',teacher:'Teacher',clinic:'Clinic'};
+  const colors={admin:'#1565c0',teacher:'#2e7d32',clinic:'#880e4f'};
+  const total=users.length||1;
+  return roles.map(r=>{
+    const cnt=users.filter(u=>u.role===r).length;
+    return`<div class="progress-row">
+      <div class="progress-label">${labels[r]}</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.round(cnt/total*100)}%;background:${colors[r]}"></div></div>
+      <div class="progress-count">${cnt}</div>
+    </div>`;
+  }).join('');
+}
+
+function tplAdminMonitor() {
+  return `
+  <div class="section-card">
+    <div class="section-card-header"><span class="section-card-title">All Students</span></div>
+    <div class="section-card-body">
+      <div class="filter-row" style="margin-bottom:14px">
+        <input class="search-input" id="monitor-search" placeholder="Search student…" oninput="renderMonitorTable()">
+      </div>
+      <div id="monitor-table-wrap"></div>
+      <div id="monitor-pagination" class="pagination"></div>
+    </div>
+  </div>
+  <div class="section-card" style="margin-top:20px">
+    <div class="section-card-header"><span class="section-card-title">All Measurements</span></div>
+    <div class="section-card-body">
+      <div id="all-measure-wrap"></div>
+      <div id="all-measure-pagination" class="pagination"></div>
+    </div>
+  </div>`;
+}
+
+let monPage=1, allMPage=1;
+function renderMonitorTable() {
+  const q=(document.getElementById('monitor-search')?.value||'').toLowerCase();
+  const data=DB.get(KEY.students).filter(s=>!q||s.name.toLowerCase().includes(q));
+  const pageSize=10,total=Math.ceil(data.length/pageSize)||1;
+  if(monPage>total) monPage=total;
+  const page=data.slice((monPage-1)*pageSize,monPage*pageSize);
+  const wrap=document.getElementById('monitor-table-wrap');
+  wrap.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Sex</th><th>Grade</th><th>Section</th></tr></thead>
+    <tbody>${page.map(s=>`<tr>
+      <td style="font-size:11px;color:var(--gray-500)">${s.id}</td>
+      <td><strong>${s.name}</strong></td><td>${s.age}</td>
+      <td><span class="badge ${s.sex==='Male'?'badge-male':'badge-female'}">${s.sex}</span></td>
+      <td>${s.grade}</td><td>${s.section}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+  renderPagination('monitor-pagination',monPage,total,p=>{monPage=p;renderMonitorTable();});
+}
+
+function renderAllMeasures() {
+  const data=DB.get(KEY.measurements).slice().reverse();
+  const students=DB.get(KEY.students);
+  const sMap=Object.fromEntries(students.map(s=>[s.id,s]));
+  const pageSize=10,total=Math.ceil(data.length/pageSize)||1;
+  if(allMPage>total) allMPage=total;
+  const page=data.slice((allMPage-1)*pageSize,allMPage*pageSize);
+  const wrap=document.getElementById('all-measure-wrap');
+  if(!page.length){wrap.innerHTML=emptyState('No measurements yet.');return;}
+  wrap.innerHTML=`<div class="table-wrap">${renderMeasureTable(page,students)}</div>`;
+  renderPagination('all-measure-pagination',allMPage,total,p=>{allMPage=p;renderAllMeasures();});
+}
+
+function tplAdminSummary() {
+  const measures=DB.get(KEY.measurements);
+  const students=DB.get(KEY.students);
+  const reports=DB.get(KEY.reports);
+  const today=new Date();
+  const thisMonth=today.toISOString().slice(0,7);
+  const feverMonth=measures.filter(m=>m.tempStatus==='Fever'&&m.date.startsWith(thisMonth)).length;
+  const latestPerStudent={};
+  measures.forEach(m=>{ if(!latestPerStudent[m.studentId]||m.date>latestPerStudent[m.studentId].date) latestPerStudent[m.studentId]=m; });
+  const counts={Normal:0,Underweight:0,Overweight:0,Obese:0};
+  Object.values(latestPerStudent).forEach(m=>{ if(counts[m.nutritionalStatus]!==undefined) counts[m.nutritionalStatus]++; });
+  const total=students.length||1;
+  const colors={Normal:'#2e7d32',Underweight:'#e65100',Overweight:'#f57f17',Obese:'#c62828'};
+
+  // grade-wise
+  const gradeCounts={};
+  students.forEach(s=>{ gradeCounts[s.grade]=(gradeCounts[s.grade]||0)+1; });
+
+  return `
+  <div class="section-card">
+    <div class="section-card-header">
+      <span class="section-card-title">Reports Summary</span>
+      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print</button>
+    </div>
+    <div class="section-card-body" id="print-summary">
+      <div class="report-header"><h2>Maloro Elementary School — Health Summary</h2><p>Generated: ${new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})}</p></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+        <div class="stat-card green"><div class="stat-label">Total Students</div><div class="stat-value">${students.length}</div></div>
+        <div class="stat-card red"><div class="stat-label">Fever Cases This Month</div><div class="stat-value">${feverMonth}</div></div>
+        <div class="stat-card blue"><div class="stat-label">Total Reports</div><div class="stat-value">${reports.length}</div></div>
+      </div>
+      <div style="margin-bottom:24px">
+        <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:12px">Nutritional Status Distribution</div>
+        ${Object.entries(counts).map(([k,v])=>`
+          <div class="progress-row">
+            <div class="progress-label">${k}</div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.round(v/total*100)}%;background:${colors[k]}"></div></div>
+            <div class="progress-count">${v} (${Math.round(v/total*100)}%)</div>
+          </div>`).join('')}
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:12px">Students by Grade</div>
+        ${Object.entries(gradeCounts).sort().map(([g,c])=>`
+          <div class="progress-row">
+            <div class="progress-label">${g}</div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.round(c/total*100)}%;background:#1565c0"></div></div>
+            <div class="progress-count">${c}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function tplAdminUsers() {
+  return `
+  <div class="section-card">
+    <div class="section-card-header">
+      <span class="section-card-title">User Management</span>
+      <button class="btn btn-primary btn-sm" onclick="openAddUser()">+ Add User</button>
+    </div>
+    <div class="section-card-body">
+      <div id="user-table-wrap"></div>
+    </div>
+  </div>`;
+}
+
+function renderUserTable() {
+  const users=DB.get(KEY.users);
+  const wrap=document.getElementById('user-table-wrap');
+  if(!wrap) return;
+  wrap.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Full Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+    <tbody>${users.map(u=>`<tr>
+      <td style="font-size:11px;color:var(--gray-500)">${u.id}</td>
+      <td><strong>${u.name}</strong></td>
+      <td>${u.username}</td>
+      <td><span class="badge ${u.role==='admin'?'badge-pending':u.role==='teacher'?'badge-normal':'badge-reviewed'}">${roleLabel(u.role)}</span></td>
+      <td><div class="td-actions">
+        <button class="btn-icon edit" onclick="openEditUser('${u.id}')">✏️</button>
+        ${u.id!==currentUser.id?`<button class="btn-icon delete" onclick="deleteUser('${u.id}')">🗑️</button>`:'<span style="font-size:11px;color:var(--gray-400)">You</span>'}
+      </div></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ================================================================
+// ===== PANEL INIT ===============================================
+// ================================================================
+function initPanel(id) {
+  switch(id) {
+    case 'teacher-students': renderStudentTable(); break;
+    case 'teacher-measure':  renderMeasureList(); break;
+    case 'teacher-reports':  renderReportTable(); break;
+    case 'clinic-records':   renderClinicRecordsTable(); break;
+    case 'admin-monitor':    renderMonitorTable(); renderAllMeasures(); break;
+    case 'admin-users':      renderUserTable(); break;
+  }
+}
+
+// ================================================================
+// ===== STUDENT CRUD ============================================
+// ================================================================
+function openAddStudent() {
+  document.getElementById('modal-student-title').textContent='Add Student';
+  document.getElementById('s-edit-id').value='';
+  clearForm(['s-name','s-age','s-sex','s-grade','s-section']);
+  openModal('modal-student');
+}
+function openEditStudent(id) {
+  const s=DB.getOne(KEY.students,id);
+  if(!s) return;
+  document.getElementById('modal-student-title').textContent='Edit Student';
+  document.getElementById('s-edit-id').value=id;
+  document.getElementById('s-name').value=s.name;
+  document.getElementById('s-age').value=s.age;
+  document.getElementById('s-sex').value=s.sex;
+  document.getElementById('s-grade').value=s.grade;
+  document.getElementById('s-section').value=s.section;
+  openModal('modal-student');
+}
+function saveStudent() {
+  const fields=['s-name','s-age','s-sex','s-grade','s-section'];
+  if(!validateFields(fields)) return;
+  const name=document.getElementById('s-name').value.trim();
+  const editId=document.getElementById('s-edit-id').value;
+  const students=DB.get(KEY.students);
+  if(!editId && students.find(s=>s.name.toLowerCase()===name.toLowerCase())) { showToast('A student with this name already exists.','error'); return; }
+  if(editId) {
+    const idx=students.findIndex(s=>s.id===editId);
+    if(idx>-1) {
+      students[idx]={...students[idx], name, age:+document.getElementById('s-age').value,
+        sex:document.getElementById('s-sex').value, grade:document.getElementById('s-grade').value,
+        section:document.getElementById('s-section').value};
+      DB.set(KEY.students,students);
+      showToast('Student updated successfully.','success');
+    }
+  } else {
+    students.push({id:uid(), name, age:+document.getElementById('s-age').value,
+      sex:document.getElementById('s-sex').value, grade:document.getElementById('s-grade').value,
+      section:document.getElementById('s-section').value});
+    DB.set(KEY.students,students);
+    showToast('Student added successfully.','success');
+  }
+  closeModal('modal-student');
+  renderStudentTable();
+}
+function deleteStudent(id) {
+  if(!confirm('Delete this student and all their health records?')) return;
+  DB.set(KEY.students, DB.get(KEY.students).filter(s=>s.id!==id));
+  DB.set(KEY.measurements, DB.get(KEY.measurements).filter(m=>m.studentId!==id));
+  showToast('Student deleted.','info');
+  renderStudentTable();
+}
+
+// ================================================================
+// ===== MEASUREMENT CRUD =========================================
+// ================================================================
+function openMeasureModal() {
+  clearForm(['m-student-id','m-height','m-weight','m-temp','m-date']);
+  document.getElementById('m-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('measure-result').classList.remove('show');
+  const sel=document.getElementById('m-student-select');
+  const students=DB.get(KEY.students);
+  sel.innerHTML='<option value="">— Select Student —</option>'+students.map(s=>`<option value="${s.id}">${s.name} (${s.grade})</option>`).join('');
+  openModal('modal-measure');
+}
+function saveMeasurement() {
+  const fields=['m-student-select','m-height','m-weight','m-temp','m-date'];
+  if(!validateFields(fields)) return;
+  const sid=document.getElementById('m-student-select').value;
+  const h=+document.getElementById('m-height').value;
+  const w=+document.getElementById('m-weight').value;
+  const t=+document.getElementById('m-temp').value;
+  const date=document.getElementById('m-date').value;
+  const bmi=calcBMI(h,w);
+  const ns=nutritionLabel(bmi);
+  const ts=t>=37.5?'Fever':'Normal';
+  const measures=DB.get(KEY.measurements);
+  measures.push({id:uid(),studentId:sid,height:h,weight:w,temperature:t,date,bmi,nutritionalStatus:ns,tempStatus:ts});
+  DB.set(KEY.measurements,measures);
+  document.getElementById('res-bmi').textContent=bmi;
+  document.getElementById('res-nutr').innerHTML=nutritionBadge(ns);
+  document.getElementById('res-temp-val').textContent=t+'°C';
+  document.getElementById('res-temp-status').innerHTML=tempBadge(ts);
+  document.getElementById('measure-result').classList.add('show');
+  showToast('Measurement saved successfully!','success');
+  if(currentPanel==='teacher-measure') renderMeasureList();
+  if(currentPanel==='teacher-dashboard') loadPanel('teacher-dashboard');
+}
+
+// ================================================================
+// ===== REPORT FUNCTIONS =========================================
+// ================================================================
+function openReportView() {
+  const students=DB.get(KEY.students);
+  const measures=DB.get(KEY.measurements);
+  const reports=DB.get(KEY.reports);
+  const q=(document.getElementById('report-search')?.value||'').toLowerCase();
+  const gr=document.getElementById('report-grade')?.value||'';
+  const from=document.getElementById('report-from')?.value||'';
+  const to=document.getElementById('report-to')?.value||'';
+  const sMap=Object.fromEntries(students.map(s=>[s.id,s]));
+  let data=measures.filter(m=>{
+    const s=sMap[m.studentId];
+    return (!q||(s&&s.name.toLowerCase().includes(q)))&&(!gr||s?.grade===gr)&&(!from||m.date>=from)&&(!to||m.date<=to);
+  }).reverse();
+
+  const body=document.getElementById('report-view-body');
+  body.innerHTML=`
+    <div class="report-header">
+      <h2>Maloro Elementary School — Student Health Report</h2>
+      <p>Generated: ${new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})} | By: ${currentUser.name}</p>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Student</th><th>Grade</th><th>Date</th><th>H</th><th>W</th><th>BMI</th><th>Nutritional Status</th><th>Temp</th><th>Status</th></tr></thead>
+      <tbody>${data.map(m=>{const s=sMap[m.studentId];return`<tr>
+        <td>${s?s.name:'?'}</td><td>${s?.grade||''}</td><td>${m.date}</td>
+        <td>${m.height}cm</td><td>${m.weight}kg</td><td>${m.bmi}</td>
+        <td>${nutritionBadge(m.nutritionalStatus)}</td><td>${m.temperature}°C</td><td>${tempBadge(m.tempStatus)}</td>
+      </tr>`}).join('')}</tbody>
+    </table></div>`;
+  openModal('modal-report-view');
+}
+
+window._reportDataForExport=null;
+function exportReportCSV() {
+  const students=DB.get(KEY.students);
+  const measures=DB.get(KEY.measurements);
+  const sMap=Object.fromEntries(students.map(s=>[s.id,s]));
+  const rows=[['Student','Grade','Date','Height(cm)','Weight(kg)','BMI','Nutritional Status','Temperature','Temp Status']];
+  measures.reverse().forEach(m=>{const s=sMap[m.studentId];rows.push([s?.name||'?',s?.grade||'',m.date,m.height,m.weight,m.bmi,m.nutritionalStatus,m.temperature,m.tempStatus]);});
+  downloadCSV(rows,'health_report.csv');
+}
+function exportAllCSV() { exportReportCSV(); }
+
+function sendReport() {
+  const sid=document.getElementById('send-student')?.value;
+  if(!sid){showToast('Please select a student.','error');return;}
+  const reports=DB.get(KEY.reports);
+  reports.push({id:uid(),studentId:sid,generatedBy:currentUser.username,date:new Date().toISOString().slice(0,10),status:'Pending',recommendation:''});
+  DB.set(KEY.reports,reports);
+  showToast('Report submitted to clinic!','success');
+  loadPanel('teacher-send');
+}
+
+// ================================================================
+// ===== USER CRUD ================================================
+// ================================================================
+function openAddUser() {
+  document.getElementById('modal-user-title').textContent='Add User';
+  document.getElementById('u-edit-id').value='';
+  clearForm(['u-name','u-username','u-password','u-role']);
+  openModal('modal-user');
+}
+function openEditUser(id) {
+  const u=DB.getOne(KEY.users,id);
+  if(!u) return;
+  document.getElementById('modal-user-title').textContent='Edit User';
+  document.getElementById('u-edit-id').value=id;
+  document.getElementById('u-name').value=u.name;
+  document.getElementById('u-username').value=u.username;
+  document.getElementById('u-password').value=u.password;
+  document.getElementById('u-role').value=u.role;
+  openModal('modal-user');
+}
+function saveUser() {
+  const fields=['u-name','u-username','u-password','u-role'];
+  if(!validateFields(fields)) return;
+  const editId=document.getElementById('u-edit-id').value;
+  const name=document.getElementById('u-name').value.trim();
+  const username=document.getElementById('u-username').value.trim();
+  const password=document.getElementById('u-password').value;
+  const role=document.getElementById('u-role').value;
+  const users=DB.get(KEY.users);
+  if(!editId && users.find(u=>u.username===username)){showToast('Username already taken.','error');return;}
+  if(editId) {
+    const idx=users.findIndex(u=>u.id===editId);
+    if(idx>-1){users[idx]={...users[idx],name,username,password,role};DB.set(KEY.users,users);showToast('User updated.','success');}
+  } else {
+    users.push({id:uid(),name,username,password,role});
+    DB.set(KEY.users,users);
+    showToast('User added.','success');
+  }
+  closeModal('modal-user');
+  renderUserTable();
+}
+function deleteUser(id) {
+  if(id===currentUser.id){showToast('Cannot delete your own account.','error');return;}
+  if(!confirm('Delete this user?')) return;
+  DB.set(KEY.users, DB.get(KEY.users).filter(u=>u.id!==id));
+  showToast('User deleted.','info');
+  renderUserTable();
+}
+
+// ================================================================
+// ===== RECOMMENDATION CRUD ======================================
+// ================================================================
+function openAddRec(reportId) {
+  const r=DB.getOne(KEY.reports,reportId);
+  if(!r) return;
+  const s=DB.get(KEY.students).find(x=>x.id===r.studentId);
+  document.getElementById('rec-report-id').value=reportId;
+  document.getElementById('rec-student-info').innerHTML=s?`<strong>${s.name}</strong> · ${s.grade} · ${s.section} · Report Date: ${r.date}`:'Report details';
+  document.getElementById('rec-text').value=r.recommendation||'';
+  openModal('modal-rec');
+}
+function saveRecommendation() {
+  const id=document.getElementById('rec-report-id').value;
+  const text=document.getElementById('rec-text').value.trim();
+  if(!text){showToast('Please enter a recommendation.','error');return;}
+  const reports=DB.get(KEY.reports);
+  const idx=reports.findIndex(r=>r.id===id);
+  if(idx>-1){reports[idx].recommendation=text;reports[idx].status='Reviewed';DB.set(KEY.reports,reports);}
+  showToast('Recommendation saved!','success');
+  closeModal('modal-rec');
+  loadPanel(currentPanel);
+}
+
+// ================================================================
+// ===== UTILITIES ================================================
+// ================================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+});
+
+function validateFields(ids) {
+  let ok=true;
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('invalid');
+    if(!el.value.trim()){el.classList.add('invalid');ok=false;}
+  });
+  if(!ok) showToast('Please fill in all required fields.','error');
+  return ok;
+}
+
+function clearForm(ids) {
+  ids.forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('invalid');}});
+}
+
+function showToast(msg, type='info') {
+  const tc=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  const icon = type==='success'?'✓':type==='error'?'✕':'ℹ';
+  t.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
+  tc.appendChild(t);
+  setTimeout(()=>{t.style.animation='fadeOut .3s forwards';setTimeout(()=>t.remove(),300);},3000);
+}
+
+function emptyState(msg) {
+  return `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>${msg}</p></div>`;
+}
+
+function renderPagination(containerId, current, total, callback) {
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  if(total<=1){el.innerHTML='';return;}
+  let html=`<button class="page-btn" ${current===1?'disabled':''} onclick="(${callback})(${current-1})">‹</button>`;
+  for(let i=1;i<=total;i++) html+=`<button class="page-btn ${i===current?'active':''}" onclick="(${callback})(${i})">${i}</button>`;
+  html+=`<button class="page-btn" ${current===total?'disabled':''} onclick="(${callback})(${current+1})">›</button>`;
+  el.innerHTML=html;
+}
+
+function downloadCSV(rows, filename) {
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+}
+
+// ================================================================
+// ===== INIT =====================================================
+// ================================================================
+seedData();
+
+// Restore session
+const saved=sessionStorage.getItem('hms_session');
+if(saved) {
+  try {
+    currentUser=JSON.parse(saved);
+    showApp();
+  } catch { currentUser=null; }
+}
+
+// Enter key on login
+document.getElementById('inp-password').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('inp-username').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('inp-password').focus(); });
+</script>
+</body>
+</html>
